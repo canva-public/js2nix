@@ -1,7 +1,6 @@
 {
   "name": "@canva/js2nix",
   "version": "1.0.0",
-  "main": "bin/js2nix",
   "license": "MIT",
   "bin": {
     "js2nix": "./bin/js2nix"
@@ -42,9 +41,26 @@
     "package.json",
     "default.nix",
     "lib.nix",
+    "overlay.nix",
     "js2nix.nix",
     "yarn.lock.nix"
   ],
+  "js2nix": {
+    "// 1": [
+      "The reason to disable import check for the '@jest/globals' is becasue it throws an error when imported",
+      "directly, see https://github.com/facebook/jest/blob/v27.0.3/packages/jest-globals/src/index.ts#L29-L31"
+    ],
+    "overlay": {
+      "@jest/globals": {
+        "doCheck": false
+      },
+      "babel-jest": {
+        "addDependencies": [
+          "@babel/core"
+        ]
+      }
+    }
+  },
   "optionalDependencies": {
     "node-gyp": "^9.1.0"
   }
