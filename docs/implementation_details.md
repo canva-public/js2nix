@@ -96,3 +96,36 @@ And the resulting files structure of the `C-x.x.x` derivation resembles the foll
 So, every package in this set can access only its direct dependencies but not the others.
 
 > Note: this is a particularly rare case but still needs to be considered.
+
+### js2nix's runtime dependency on `node-gyp`
+
+Packages that implement native extensions (for example, those that have `binding.gyp` files) must be built via `node-gyp`. This is an npm package that must be built in Nix first and then provided as native build inputs to the standard build process. To make this possible, js2nix bootstraps itself with no dependency on `node-gyp` to instantiate a minimal viable tool to be able to create the `node-gyp` Nix package, then js2nix instantiates itself with this pre-built `node-gyp` as it's native build input dependency.
+
+This `node-gyp` package is available as:
+
+```nix
+js2nix.node-gyp
+```
+
+You can instantiate js2nix with the external `node-gyp` Nix package:
+
+```nix
+with import <nixpkgs> { };
+
+let
+  node-gyp = callPackage ./from/your/source.nix { };
+  js2nix = callPackage (builtins.fetchGit {
+    url = "ssh://git@github.com/Canva/js2nix.git";
+    ref = "main";
+  }) { inherit node-gyp; };
+in js2nix
+```
+
+### Caveats
+
+A full installation from scratch using Nix can take more time than one of the Node.js ecosystem's package managers like yarn or npm. This is because these tools are written for Node.js, which executes concurrent jobs within a single thread using an [event-loop](https://nodejs.dev/learn/the-nodejs-event-loop), so no context switching happens. This is a different approach to the traditional operating system threads used by Nix. You can still improve the speed using the [`--max-jobs`](https://nixos.org/manual/nix/stable/#opt-max-jobs) option or more [advanced techniques](https://nixos.org/manual/nix/unstable/advanced-topics/cores-vs-jobs.html).
+
+This is the expected behaviour for Nix. A [substituters](https://nixos.org/manual/nix/stable/#conf-substituters) option (also known as a binary cache) exists to address this particular issue. Since Nix is optimised to use binary caches and handle such cases in a reasonable time, it is assumed that all artefacts of `node_modules` will be cached. A slow package-building process is not an issue, because it should only happen once in most cases.
+
+[yarn]: https://classic.yarnpkg.com
+[npm]: https://npmjs.com

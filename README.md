@@ -30,10 +30,11 @@ let
     url = "ssh://git@github.com/canva-public/js2nix.git";
     ref = "main";
   }) { };
-  nodeModules = js2nix.makeNodeModules ./package.json {
-    tree = js2nix.load ./yarn.lock { };
+  env = js2nix {
+    package-json = ./package.json;
+    yarn-lock = ./yarn.lock;
   };
-in nodeModules
+in env.nodeModules
 ```
 And then a `node_modules` folder can be created via:
 
