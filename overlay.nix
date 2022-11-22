@@ -113,7 +113,10 @@ in
       modules = (x.modules or [ ]) ++ modules;
     });
 
-  fn.doCheck = { pkg, value, ... }: pkg.override { doCheck = value; };
+  fn.doCheck = { pkg, value, ... }: 
+    # Accept only boolean as an input.
+    assert builtins.typeOf value == "bool"; 
+    pkg.override { doCheck = value; };
 
   # Override the src field.
   #
@@ -128,9 +131,16 @@ in
     });
 
   fn.patches = { pkg, value, package-json, ... }:
-    # Accept only string or set as an input.
+    # Accept only list of string as an input.
     assert builtins.typeOf value == "list";
     pkg.override (x: {
       patches = builtins.map (getLocalPath package-json) value;
+    });
+
+  fn.lifeCycleScripts = { pkg, value, ... }:
+    # Accept only list of string as an input.
+    assert builtins.typeOf value == "list";
+    pkg.override (x: {
+      lifeCycleScripts = value;
     });
 }

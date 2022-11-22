@@ -187,6 +187,10 @@ self: super: {
     ]; };
   "left-pad@1.3.0" = super."left-pad@1.3.0".override {
     src = ./vendor/left-pad; };
+  "yo@*" = super."yo@*".override (x: {
+    # Disable life-cycle scripts
+    lifeCycleScripts = [ ];
+  })
 }
 ```
 
@@ -210,6 +214,9 @@ the same can be done in `package.json` file:
       },
       "left-pad": {
         "src": "./vendor/left-pad"
+      },
+      "yo": {
+        "lifeCycleScripts": []
       }
     }
   }
@@ -221,6 +228,7 @@ the same can be done in `package.json` file:
 - `js2nix.overlay.<package>.src` - string or an object. Overrides a package source. It can be a local folder path, relative to the `package.json` file or an absolute path. Also can be an object that overrides the `fetchurl` function attributes.
 - `js2nix.overlay.<package>.doCheck` - boolean. Overrides the `doCheck` argument for the pacakge builder. It's `true` by default.
 - `js2nix.overlay.<package>.patches` - a list of strings. Overrides patches with the given list. Items in the list can be strings that represent a path to a patch file, an absolute or relative the `package.json` file.
+- `js2nix.overlay.<package>.lifeCycleScripts` - a list of strings. Overrides `lifeCycleScripts`, can contains scripts' names, declared in the `package.json` of the package. TIP: you can use patch feature to add some scripts you need there.
 
 ### Life-cycle scripts
 
