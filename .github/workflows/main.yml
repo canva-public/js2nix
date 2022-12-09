@@ -1,4 +1,4 @@
-name: Build js2nix binaries
+name: Build and test js2nix
 on: [push]
 
 # This allows a subsequently queued workflow run to interrupt previous runs
@@ -14,7 +14,7 @@ jobs:
       - uses: cachix/install-nix-action@v18
       - name: Run build
         run: nix-build --no-out-link -j auto ./build.nix
-  test:
+  tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -29,3 +29,21 @@ jobs:
         run: yarn install
       - name: Run tests
         run: yarn test
+  integration-tests:
+    needs: [build, tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: cachix/install-nix-action@v18
+      - name: Run tests in nix-shell
+        run: nix-shell --run 'jest'
+  lock-diff:
+    needs: [build, tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: cachix/install-nix-action@v18
+      - name: Generate Nix expression from the yarn.lock file
+        run: nix-shell --run 'js2nix --lock ./yarn.lock --out ./yarn.lock.nix'
+      - name: Check git diff
+        run: git diff --exit-code HEAD
