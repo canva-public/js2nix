@@ -50,8 +50,15 @@
       "The reason to disable import check for the '@jest/globals' is becasue it throws an error when imported",
       "directly, see https://github.com/facebook/jest/blob/v27.0.3/packages/jest-globals/src/index.ts#L29-L31"
     ],
+    "// 2": [
+      "The reason to disable import check for the 'fsevents' is becasue it is ont macOS specific package",
+      "and doesn't exist on Linux"
+    ],
     "overlay": {
       "@jest/globals": {
+        "doCheck": false
+      },
+      "fsevents": {
         "doCheck": false
       },
       "babel-jest": {
