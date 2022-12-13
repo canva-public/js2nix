@@ -2413,7 +2413,7 @@ self: super: {
       self."fs.realpath@1.0.0"
       self."inflight@1.0.6"
       self."inherits@2.0.4"
-      self."minimatch@3.0.4"
+      self."minimatch@3.1.2"
       self."once@1.4.0"
       self."path-is-absolute@1.0.1"
     ];
@@ -3681,12 +3681,12 @@ self: super: {
     };
   };
   "mimic-fn@^2.1.0" = self."mimic-fn@2.1.0";
-  "minimatch@3.0.4" = self.buildNodeModule {
+  "minimatch@3.1.2" = self.buildNodeModule {
     id = { scope = ""; name = "minimatch"; };
-    version = "3.0.4";
+    version = "3.1.2";
     src = self.fetchurl {  
-      url = "https://registry.yarnpkg.com/minimatch/-/minimatch-3.0.4.tgz"; 
-      sha1 = "5166e286457f03306064be5497e8dbb0c3d32083"; 
+      url = "https://registry.yarnpkg.com/minimatch/-/minimatch-3.1.2.tgz"; 
+      sha1 = "19cd194bfd3e428f049a70817c038d89ab4be35b"; 
     };
     modules = [
       self."brace-expansion@1.1.11"
@@ -3703,7 +3703,7 @@ self: super: {
       self."brace-expansion@2.0.1"
     ];
   };
-  "minimatch@^3.0.4" = self."minimatch@3.0.4";
+  "minimatch@^3.0.4" = self."minimatch@3.1.2";
   "minimatch@^5.0.1" = self."minimatch@5.1.0";
   "minimist@0.0.10" = self.buildNodeModule {
     id = { scope = ""; name = "minimist"; };
@@ -4797,7 +4797,7 @@ self: super: {
     modules = [
       self."@istanbuljs/schema@0.1.3"
       self."glob@7.1.7"
-      self."minimatch@3.0.4"
+      self."minimatch@3.1.2"
     ];
   };
   "test-exclude@^6.0.0" = self."test-exclude@6.0.0";
