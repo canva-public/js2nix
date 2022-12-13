@@ -1,4 +1,4 @@
-# js2nix
+# js2nix [![Build and test js2nix](https://github.com/canva-public/js2nix/actions/workflows/main.yml/badge.svg)](https://github.com/canva-public/js2nix/actions/workflows/main.yml)
 
 A tool that makes use of the [Nix] package manager to install [Node.js] dependencies declared in `package.json` and `yarn.lock` files. It is an experimental project to discover opportunities to use Nix for Node.js dependencies. Read more about the background problems [here](./docs/background.md).
 
