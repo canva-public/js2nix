@@ -275,7 +275,10 @@ let
                     stub = module.id == module.host or null;
                     seen = builtins.elem { inherit (module) id host; } visited;
                   in (if hasNoHost then ''
-                    lib.linkModule('${module}/lib', ${destination})
+                    Promise.all([
+                      lib.linkModule('${module}/lib', ${destination}),
+                      lib.linkBinaries('${module}/lib', path.join(${destination}, '.bin'))
+                    ])
                   '' else if stub then ''
                     lib.linkModule(path.join(process.env.out, 'lib'), ${destination})
                   '' else if seen then ''
@@ -377,8 +380,11 @@ let
           fi
 
           if [[ -n "$script" ]]; then
-            echo "${moduleName}: invoke \"${script}\" life-cycle script: \"$script\" ... "
-            env "HOME=$TMPDIR" "PATH=$out/node_modules/.bin:$PATH" bash -c "$script"
+            echo "${moduleName}: invoke \"${script}\" life-cycle script:"
+            echo
+            echo "( cd \"$out/lib\" && env \"HOME=$TMPDIR\" \"PATH=$out/pkgs/${ref}/node_modules/.bin:$PATH\" bash -c \"$(echo $script | sed 's/"/\\"/g')\" )"
+            echo
+            env "HOME=$TMPDIR" "PATH=$out/pkgs/${ref}/node_modules/.bin:$PATH" bash -c "$script"
           fi
         '') lifeCycleScripts}
 
@@ -401,9 +407,8 @@ let
           node -e 'require(process.env.out + "/lib")' || (
             echo
             echo Unable to execute:
-            echo "λ node -e 'require(\"$out/lib\")"
-            echo
-            echo "import check for the ${moduleName}."
+            echo "node -e 'require(\"$out/lib\")"
+            echo "Import check for the \"${moduleName}\" failed. Consider disable a check for this module in an overlay or fix the error."
             echo
             exit 1
           )

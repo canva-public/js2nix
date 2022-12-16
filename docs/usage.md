@@ -190,7 +190,7 @@ self: super: {
   "yo@*" = super."yo@*".override (x: {
     # Disable life-cycle scripts
     lifeCycleScripts = [ ];
-  })
+  });
 }
 ```
 
