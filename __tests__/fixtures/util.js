@@ -1,6 +1,6 @@
 // @ts-check
 
-const { DepTree, Package, Key, Id } = require('../../lib/print');
+const { Package, Key, Id } = require('../../lib/print');
 
 /**
  * @typedef {({
@@ -10,9 +10,8 @@ const { DepTree, Package, Key, Id } = require('../../lib/print');
  */
 
 /**
- *
  * @param {TestTree} testTree
- * @returns {DepTree<Package>}
+ * @returns {import('../../lib/print').DepTree<Package>}
  */
 function createTree(testTree) {
   const nameToKey = {};
@@ -52,7 +51,7 @@ function createTree(testTree) {
 }
 
 /**
- * @param {DepTree<Package>} tree
+ * @param {import('../../lib/print').DepTree<Package>} tree
  * @returns {string}
  */
 function renderSnapshot(tree) {
