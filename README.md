@@ -12,6 +12,17 @@ A tool that makes use of the [Nix] package manager to install [Node.js] dependen
 - Remove the need to be check generated files into a code-base, provides IFD if required
 - Make the generation of the Nix expression pure, so no assumptions are made around missing SHAs, local packages locations, etc
 
+
+### Contributing
+
+```
+yarn
+# do i need a certain nix version?
+# can i run nix-shell to develop in this repo with all deps?
+?.?
+how to run tests?
+```
+
 ### Details
 
 It is implemented as a CLI tool written in JavaScript and as a Nix library that picks up that tool and executes it internally to generate a Nix expression out of the given tuple of `package.json` & `yarn.lock` files in a pure manner as a separate Nix derivation, that then can be imported into the Nix runtime and the generated Nix derivations will be built via the provided Nix library to install Node.js dependencies. 
