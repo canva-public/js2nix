@@ -42,7 +42,7 @@ self: super: {
       self."convert-source-map@1.7.0"
       self."debug@4.3.1"
       self."gensync@1.0.0-beta.2"
-      self."json5@2.2.0"
+      self."json5@2.2.3"
       self."semver@6.3.0"
       self."source-map@0.5.7"
     ];
@@ -3494,18 +3494,15 @@ self: super: {
     };
   };
   "jsesc@^2.5.1" = self."jsesc@2.5.2";
-  "json5@2.2.0" = self.buildNodeModule {
+  "json5@2.2.3" = self.buildNodeModule {
     id = { scope = ""; name = "json5"; };
-    version = "2.2.0";
+    version = "2.2.3";
     src = self.fetchurl {  
-      url = "https://registry.yarnpkg.com/json5/-/json5-2.2.0.tgz"; 
-      sha1 = "2dfefe720c6ba525d9ebd909950f0515316c89a3"; 
+      url = "https://registry.yarnpkg.com/json5/-/json5-2.2.3.tgz"; 
+      sha1 = "78cd6f1a19bdc12b73db5ad0c61efd66c1e29283"; 
     };
-    modules = [
-      self."minimist@1.2.5"
-    ];
   };
-  "json5@^2.1.2" = self."json5@2.2.0";
+  "json5@^2.1.2" = self."json5@2.2.3";
   "kleur@3.0.3" = self.buildNodeModule {
     id = { scope = ""; name = "kleur"; };
     version = "3.0.3";
@@ -3713,15 +3710,6 @@ self: super: {
       sha1 = "de3f98543dbf96082be48ad1a0c7cda836301dcf"; 
     };
   };
-  "minimist@1.2.5" = self.buildNodeModule {
-    id = { scope = ""; name = "minimist"; };
-    version = "1.2.5";
-    src = self.fetchurl {  
-      url = "https://registry.yarnpkg.com/minimist/-/minimist-1.2.5.tgz"; 
-      sha1 = "67d66014b66a6a8aaa0c083c5fd58df4e4e97602"; 
-    };
-  };
-  "minimist@^1.2.5" = self."minimist@1.2.5";
   "minimist@~0.0.1" = self."minimist@0.0.10";
   "minipass-collect@1.0.2" = self.buildNodeModule {
     id = { scope = ""; name = "minipass-collect"; };
