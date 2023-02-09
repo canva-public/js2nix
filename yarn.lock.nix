@@ -2525,15 +2525,15 @@ self: super: {
     };
   };
   "html-escaper@^2.0.0" = self."html-escaper@2.0.2";
-  "http-cache-semantics@4.1.0" = self.buildNodeModule {
+  "http-cache-semantics@4.1.1" = self.buildNodeModule {
     id = { scope = ""; name = "http-cache-semantics"; };
-    version = "4.1.0";
+    version = "4.1.1";
     src = self.fetchurl {  
-      url = "https://registry.yarnpkg.com/http-cache-semantics/-/http-cache-semantics-4.1.0.tgz"; 
-      sha1 = "49e91c5cbf36c9b94bcfcd71c23d5249ec74e390"; 
+      url = "https://registry.yarnpkg.com/http-cache-semantics/-/http-cache-semantics-4.1.1.tgz"; 
+      sha1 = "abe02fcb2985460bf0323be664436ec3476a6d5a"; 
     };
   };
-  "http-cache-semantics@^4.1.0" = self."http-cache-semantics@4.1.0";
+  "http-cache-semantics@^4.1.0" = self."http-cache-semantics@4.1.1";
   "http-proxy-agent@4.0.1" = self.buildNodeModule {
     id = { scope = ""; name = "http-proxy-agent"; };
     version = "4.0.1";
@@ -3598,7 +3598,7 @@ self: super: {
     modules = [
       self."agentkeepalive@4.2.1"
       self."cacache@16.1.3"
-      self."http-cache-semantics@4.1.0"
+      self."http-cache-semantics@4.1.1"
       self."http-proxy-agent@5.0.0"
       self."https-proxy-agent@5.0.0"
       self."is-lambda@1.0.1"
