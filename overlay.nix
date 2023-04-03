@@ -27,7 +27,7 @@ let
 in
 {
   # This is the entry point function that iterates over all the declarations in
-  # the `overlay` section in the `pacakge.json` file and invoke functions declared
+  # the `overlay` section in the `package.json` file and invoke functions declared
   # in this attr set.
   # 
   # Functions' naming convention:
