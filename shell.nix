@@ -1,40 +1,26 @@
-{ nixpkgs ?  import (builtins.fetchTarball "https://github.com/NixOS/nixpkgs/archive/13e0d337037b3f59eccbbdf3bc1fe7b1e55c93fd.tar.gz") { } }:
+{ pkgs ? import
+    (
+      builtins.fetchTarball "https://github.com/NixOS/nixpkgs/archive/13e0d337037b3f59eccbbdf3bc1fe7b1e55c93fd.tar.gz"
+    )
+    { }
+}:
 
 let
-  js2nix = nixpkgs.callPackage ./default.nix { };
-  tree = js2nix.load ./yarn.lock {
-    overlays = [
-      (self: super: {
-        "babel-jest@27.0.2" = super."babel-jest@27.0.2".override
-          # Fix peer dependencies
-          (x: { modules = x.modules ++ [ (self."@babel/core@7.14.3") ]; });
-      })
-    ];
+  js2nix = pkgs.callPackage ./default.nix { };
+  env = js2nix {
+    package-json = ./package.json;
+    yarn-lock = ./yarn.lock;
   };
-
-  devNodeModules = js2nix.makeNodeModules ./package.json {
-    name = "dev";
-    inherit tree;
-    prefix = "/lib/node_modules";
-    exposeBin = true;
-  };
-
-  prodNodeModules = js2nix.makeNodeModules ./package.json {
-    name = "prod";
-    inherit tree;
-    sections = [ "dependencies" ];
-  };
-
-in nixpkgs.mkShell {
+in
+pkgs.mkShell {
   # Give the nix-build access to resulting artifact directly with an a standart folder 
   # structure instead of the structure that would be picked up by nodejs pachage setup-hook.
   # To create a folder type:
-  #   nix-build -o node_modules -A devNodeModules ./shell.nix
-  devNodeModules = devNodeModules.override { prefix = ""; };
-  prodNodeModules = prodNodeModules;
+  #   nix-build -o ./node_modules -A env.nodeModules ./shell.nix
+  passthru.env = env;
   buildInputs = [
-    devNodeModules
-    nixpkgs.nodejs
+    (env.nodeModules.override { prefix = "/lib/node_modules"; })
+    pkgs.nodejs
     js2nix.bin
     js2nix.proxy
     js2nix.node-gyp

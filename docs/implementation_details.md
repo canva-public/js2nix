@@ -97,129 +97,35 @@ So, every package in this set can access only its direct dependencies but not th
 
 > Note: this is a particularly rare case but still needs to be considered.
 
-### Overriding
+### js2nix's runtime dependency on `node-gyp`
 
-You can override a node package input, as well as the resulting derivation using the following as an example:
+Packages that implement native extensions (for example, those that have `binding.gyp` files) must be built via `node-gyp`. This is an npm package that must be built in Nix first and then provided as native build inputs to the standard build process. To make this possible, js2nix bootstraps itself with no dependency on `node-gyp` to instantiate a minimal viable tool to be able to create the `node-gyp` Nix package, then js2nix instantiates itself with this pre-built `node-gyp` as it's native build input dependency.
+
+This `node-gyp` package is available as:
+
+```nix
+js2nix.node-gyp
+```
+
+You can instantiate js2nix with the external `node-gyp` Nix package:
 
 ```nix
 with import <nixpkgs> { };
 
 let
-  tree = js2nix.load ./yarn.lock { 
-    overlays = [
-      (self: super: {
-        "babel-jest@27.0.2" = super."babel-jest@27.0.2".override
-          # Add peer dependency
-          (x: { modules = x.modules ++ [ (self."@babel/core@7.14.3") ]; });
-        "jest@27.0.2" = super."jest@27.0.2".overrideAttrs
-          # Make jest run in Node.js@16
-          (x: { buildInputs = [ nodejs-16_x ]; });
-      })
-    ]; 
-  };
-in tree
+  node-gyp = callPackage ./from/your/source.nix { };
+  js2nix = callPackage (builtins.fetchGit {
+    url = "ssh://git@github.com/Canva/js2nix.git";
+    ref = "main";
+  }) { inherit node-gyp; };
+in js2nix
 ```
 
-Due to yarn not providing information about peer dependencies within the `yarn.lock` file, it's only possible to make packages with peer dependencies work by overriding their dependencies and providing them as in the example above. Defining those dependencies on the top-level (in the `package.json` file) won't work due to the nested [node_modules structure](#the-node_modules-folder-layout) that js2nix provides.
+### Caveats
 
-### Life-cycle scripts
+A full installation from scratch using Nix can take more time than one of the Node.js ecosystem's package managers like yarn or npm. This is because these tools are written for Node.js, which executes concurrent jobs within a single thread using an [event-loop](https://nodejs.dev/learn/the-nodejs-event-loop), so no context switching happens. This is a different approach to the traditional operating system threads used by Nix. You can still improve the speed using the [`--max-jobs`](https://nixos.org/manual/nix/stable/#opt-max-jobs) option or more [advanced techniques](https://nixos.org/manual/nix/unstable/advanced-topics/cores-vs-jobs.html).
 
-js2nix supports life-cycle scripts, but this is limited to `install` and `postinstall` by default. Change these using the `lifeCycleScripts` attribute. This attribute affects the resulting `postInstall` attribute on the final derivation, which is a bash script generated according to the  `lifeCycleScripts` attribute's content.
+This is the expected behaviour for Nix. A [substituters](https://nixos.org/manual/nix/stable/#conf-substituters) option (also known as a binary cache) exists to address this particular issue. Since Nix is optimised to use binary caches and handle such cases in a reasonable time, it is assumed that all artefacts of `node_modules` will be cached. A slow package-building process is not an issue, because it should only happen once in most cases.
 
-The `install` script is treated as special. This means if there is no `install` section in the `package.json#scripts` file, but the `bindings.gyp` file is present in the package folder, the install script will be generated as `node-gyp rebuild` if the `install` is presented in the `lifeCycleScripts` attribute. Disabling automatic `bindings.gyp` file detection will cut off the `install` from the `lifeCycleScripts` attribute.
-
-Life-cycle scripts downloaded from the internet (for example, precompiled binaries) probably won't work. This is because it might be executed in the Nix sandbox (enabled by default on Linux only), so no networking is not allowed. Or, if the package has downloaded on an environment with no sandbox enabled (for example, macOS) it won't work in pure mode due to requiring system dependencies.
-
-Consider overriding life-cycle scripts and providing the resources that the package is trying to fetch and use manually, as shown in the following example:
-
-```nix
-with import <nixpkgs> { };
-
-let
-  tree = js2nix.load ./yarn.lock {
-    overlays = [
-      (self: super: {
-        "puppeteer@1.20.0" = super."puppeteer@1.20.0".override (x: {
-          # disable life-cycle scripts
-          lifeCycleScripts = [ ];
-        });
-        "fast-cli@3.0.1" = super."fast-cli@3.0.1".overrideAttrs (x: {
-          nativeBuildInputs = [ makeWrapper ];
-          postInstall = ''
-            # Execute the postInstall script, generated according to the 
-            # lifeCycleScripts attribute value
-            ${x.postInstall}
-            # Additionally, wrap the binary with a particular chromium executable
-            wrapProgram $out/bin/fast \
-              --set PUPPETEER_EXECUTABLE_PATH ${chromium.outPath}/bin/chromium
-          '';
-        });
-      })
-    ];
-  };
-in tree
-```
-
-In the previous example, life-cycle scripts for [hosted](#dependency-cycles) packages are not being invoked. To do this, you can override the `postInstall` script of the host's derivation.
-
-### Local packages
-
-NPM allows defining dependencies to packages that are present on the local machine, as shown in the following example:
-
-```json
-{
-  "dependencies": {
-    "local-package": "../../local-package"
-  }
-}
-```
-
-js2nix handles such cases as well, but makes no assumption about where the package is located and shifts the responsibility by allowing the user to provide a location via the override mechanism. 
-
-There are two reasons for that:
-
-- The generated Nix expression is located in the Nix store, so relative paths would be inconvenient and not reproducible, and absolute paths would break the setup on another machine where the main project is located on a different path. 
-- Local dependencies can depend on other local dependencies that are defined relative to the local package that depends on them. So, it would require a sophisticated module resolution algorithm, which is out of the scope of this project and wouldn't resolve the problem.
-
-So js2nix makes the package locations the user's responsibility, hence, the locations won't affect the reproducibility. js2nix will however provide a comprehensive message with a code snippet about how to provide this missing piece of information to make the whole dependency closure work.
-
-For example:
-
-```nix
-(self: super: {
-  "@canva/eslint-rules@0.0.0" = super."@canva/eslint-rules@0.0.0".override
-    (x: { src = ../canva/tools/eslint/eslint-rules; });
-})
-```
-
-> Note: The Nix `path` builtin can be used to filter sources from a project directory containing non-source files, for example a `node_modules` folder used during development:
->
-> ```nix
-> builtins.path {
->   name = "canva-eslint-rules";
->   path = ../canva/tools/eslint/eslint-rules;
->   # A filter function that can be used to limit the source that will be used.
->   # Filter out node_modules folders from the package's source
->   filter = p: t:
->     !(t == "directory" && lib.hasSuffix "node_modules" p);
-> }
-> ```
->
-> The same can be done for a `./dist/` folder (a commonly used name for a folder with compiled artifacts in it).
-> See https://nixos.org/manual/nix/stable/#builtin-path for more details.
-
-### Packages from unknown registries
-
-js2nix relies on the tarball URLs in the `yarn.lock` file being able to contain a SHA1 sum of the tarball content in the URL fragment. That is the case for `registry.yarnpkg.com` and `registry.npmjs.org` hosts, but not for other registries. In an average `yarn.lock` file, the majority of the URLs will point to those first two registries. However, for example, if a dependency is defined as a direct Github one:
-
-```json
-{
-  "dependencies": {
-    "chimp": "hacker/chimp#dfa9125b498297f848e6a5f9eabbf55bf3eb1318"
-  }
-}
-```
-
-yarn won't provide a SHA1 sum for that URL, which makes it impossible to construct a Nix expression for that package since Nix requires SHA sums because of reproducibility. Similar to the local packages approach, js2nix doesn't make assumptions here and doesn't fetch these packages internally and infer such SHAs somehow. Rather, it relies on the user to provide such SHAs. 
-
-This is because if a package content has changed, a new SHA could be inferred implicitly. So, there's no precise control over such package's change. Also, such missing SHAs will be generated every time when new NIx expression are built, which means all the content of such packages will be fetched, causing a high load to networking and slowing down Nix generations and breaking purity.
+[yarn]: https://classic.yarnpkg.com
+[npm]: https://npmjs.com

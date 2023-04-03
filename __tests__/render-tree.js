@@ -1,6 +1,6 @@
 // @ts-check
 
-const { hostDependencyCycles, render } = require('../lib/print');
+const { hostDependencyCycles, render, Package, BrokenReference, Key, Id } = require('../lib/print');
 const { createTree } = require('./fixtures/util');
 
 describe('Render nix expression', () => {
@@ -39,6 +39,26 @@ describe('Render nix expression', () => {
       { name: 'A', modules: ['B'] },
       { name: 'B', modules: ['A'] },
     ]));
+    expect(render({ tree })).toMatchSnapshot();
+  }); 
+
+  it('short references clash', () => {
+    /** @type import('../lib/print').DepTree<Package | BrokenReference> */
+    const tree = createTree([
+      { name: 'A', modules: ['B'] },
+      { name: 'B', modules: ['C'] },
+      { name: 'C', modules: [] },
+    ]);
+
+    tree['A'] = new BrokenReference({
+      ref: 'A',
+      keys: new Set([
+        new Key({ id: new Id({ name: 'A' }), version: '1.1.1'}),
+        new Key({ id: new Id({ name: 'A' }), version: '2.1.1'}),
+        new Key({ id: new Id({ name: 'A' }), version: '5.0.0'}),
+      ]),
+    });
+
     expect(render({ tree })).toMatchSnapshot();
   }); 
 });
