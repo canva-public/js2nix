@@ -47,8 +47,8 @@ jobs:
         with:
           name: js2nix
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-      - name: Run tests in nix-shell
-        run: nix-shell --run 'jest'
+      - name: Run tests in nix develop
+        run: nix develop -c jest
   lock-diff:
     needs: [build, tests]
     runs-on: ubuntu-latest
@@ -60,6 +60,6 @@ jobs:
           name: js2nix
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
       - name: Generate Nix expression from the yarn.lock file
-        run: nix-shell --run 'js2nix --lock ./yarn.lock --out ./yarn.lock.nix'
+        run: nix develop -c js2nix --lock ./yarn.lock --out ./yarn.lock.nix
       - name: Check git diff
         run: git diff --exit-code HEAD
