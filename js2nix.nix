@@ -32,6 +32,7 @@ in buildNodeModule {
   prePatch = ''
     substituteAllInPlace lib/proxy.js
   '';
+  meta.description = "a native js 2 nix dependency translator";
   modules = selectModules ./package.json {
     inherit tree;
     sections = [ "dependencies" ];
